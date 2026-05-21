@@ -1,5 +1,13 @@
 CFLAGS = -Wall -Wextra -Werror -O2
 
+STATIC ?= 0
+
+ifeq ($(STATIC), 1)
+    LDFLAGS += -static
+else ifeq ($(STATIC), y)
+    LDFLAGS += -static
+endif
+
 .PHONY: run
 run: kvm-hello-world
 	./kvm-hello-world
@@ -8,19 +16,19 @@ run: kvm-hello-world
 	./kvm-hello-world -l
 
 kvm-hello-world: kvm-hello-world.o payload.o
-	$(CC) $^ -o $@
+	$(CC) $(LDFLAGS) $^ -o $@
 
 payload.o: payload.ld guest16.o guest32.img.o guest64.img.o
 	$(LD) -r -T $< -o $@
 
 guest64.o: guest.c
-	$(CC) $(CFLAGS) -m64 -ffreestanding -fno-pic -c -o $@ $^
+	$(CC) $(CFLAGS) -m64 -ffreestanding -fno-pic -c -o $@ $<
 
 guest64.img: guest64.o
 	$(LD) -T guest.ld $^ -o $@
 
 guest32.o: guest.c
-	$(CC) $(CFLAGS) -m32 -ffreestanding -fno-pic -c -o $@ $^
+	$(CC) $(CFLAGS) -m32 -ffreestanding -fno-pic -c -o $@ $<
 
 guest32.img: guest32.o
 	$(LD) -T guest.ld -m elf_i386 $^ -o $@
