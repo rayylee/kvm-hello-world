@@ -1,8 +1,8 @@
 #include <stddef.h>
 #include <stdint.h>
 
-static void outb(uint16_t port, uint8_t value) {
-	asm("outb %0,%1" : /* empty */ : "a" (value), "Nd" (port) : "memory");
+static inline void outb(uint16_t port, uint8_t value) {
+	asm volatile("outb %0, %1" : /*  empty */ : "a"(value), "Nd"(port) : "memory");
 }
 
 void
@@ -14,7 +14,8 @@ _start(void) {
 	for (p = "Hello, world!\n"; *p; ++p)
 		outb(0xE9, *p);
 
-	*(long *) 0x400 = 42;
+	// *(long *) 0x400 = 42;
+	asm volatile("movl $42, 0x400" : : : "memory");
 
 	for (;;)
 		asm("hlt" : /* empty */ : "a" (42) : "memory");
